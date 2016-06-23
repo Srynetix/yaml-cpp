@@ -29,6 +29,8 @@ set(YAML_CPP_VERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}.${YAML
 enable_testing()
 
 
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
 ###
 ### Project options
 ###
