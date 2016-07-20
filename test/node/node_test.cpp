@@ -12,6 +12,14 @@
 using ::testing::AnyOf;
 using ::testing::Eq;
 
+#define EXPECT_THROW_REPRESENTATION_EXCEPTION(statement, message) \
+  ASSERT_THROW(statement, RepresentationException);               \
+  try {                                                   \
+    statement;                                            \
+  } catch (const RepresentationException& e) {                    \
+    EXPECT_EQ(e.msg, message);                            \
+  }
+
 namespace YAML {
 namespace {
 TEST(NodeTest, SimpleScalar) {
@@ -95,8 +103,8 @@ TEST(NodeTest, MapForceInsert) {
 
   node.force_insert(k2, v2);
   EXPECT_EQ("v1", node["k1"].as<std::string>());
-  EXPECT_EQ("v2", node["k2"].as<std::string>());
-  EXPECT_EQ(2, node.size());
+  EXPECT_EQ("v1", node["k2"].as<std::string>());
+  EXPECT_EQ(3, node.size());
 }
 
 TEST(NodeTest, UndefinedConstNodeWithFallback) {
@@ -152,6 +160,22 @@ TEST(NodeTest, SimpleSubkeys) {
   EXPECT_EQ("iPhone", node["device"]["name"].as<std::string>());
   EXPECT_EQ("4.0", node["device"]["os"].as<std::string>());
   EXPECT_EQ("monkey", node["username"].as<std::string>());
+}
+
+TEST(NodeTest, StdArray) {
+  std::array<int, 5> evens {{ 2, 4, 6, 8, 10 }};
+  Node node;
+  node["evens"] = evens;
+  std::array<int, 5> actualEvens = node["evens"].as<std::array<int, 5>>();
+  EXPECT_EQ(evens, actualEvens);
+}
+
+TEST(NodeTest, StdArrayWrongSize) {
+  std::array<int, 3> evens {{ 2, 4, 6 }};
+  Node node;
+  node["evens"] = evens;
+  EXPECT_THROW_REPRESENTATION_EXCEPTION((node["evens"].as<std::array<int, 5>>()),
+                                        ErrorMsg::BAD_CONVERSION);
 }
 
 TEST(NodeTest, StdVector) {
